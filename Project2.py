@@ -76,16 +76,18 @@ def get_book_summary(book_url):
     You can easily capture CSS selectors with your browser's inspector window.
     Make sure to strip() any newlines from the book title and number of pages.
     """
-    '''l = []
-    tup = ()
-    r = requests.get(book_url)
-    soup = BeautifulSoup(r.content, 'html.parser')
-    tags = soup.find_all("title")
-    for tag in tags:
-        info = tag.text
-        l.append(info)
+    #l = []
+    #tup = ()
+    #r = requests.get(book_url)
+    #soup = BeautifulSoup(r.content, 'html.parser')
+    #tags = soup.find_all("title")
+    #for tag in tags:
+        #info = tag.text
+        #info2 = info.strip('\n')
+        #info3 = info2.strip('\n')
+        #l.append(info3)
     #return l
-    pass'''
+    pass
 
 
 
@@ -101,11 +103,30 @@ def summarize_best_books(filepath):
     to your list of tuples.
     """
     books = []
-    tuples = []
+    urls = []
+    categories = []
     with open(filepath) as f:
         soup = BeautifulSoup(f, 'html.parser')
+        ctags = soup.find_all('h4', class_="category__copy")
+        for tag in ctags:
+            cat = tag.text
+            categories.append(cat.strip())
+        ttags = soup.find_all('img', class_="category__winnerImage")
+        for tag in ttags:
+            title = tag.get('alt')
+            books.append(title.strip())
+        utags = soup.find_all('div', class_="category clearFix")
+        #print(utags)
+        for tag in utags:
+            urltag = tag.find('a')
+            #print(urltag)
+            url = urltag.get('href')
+            urls.append(url)
+        together = list(zip(categories, books, urls))
+       
+        return together
 
-    
+    #tag.find('a', href=re.compile("https://www.goodreads.com/choiceawards/best-+[\w\d\-]*-books-2020"))
 
 
 
@@ -203,7 +224,7 @@ class TestCases(unittest.TestCase):
     def test_summarize_best_books(self):
         # call summarize_best_books and save it to a variable
         source_dir = os.path.dirname(os.path.abspath(__file__)) #<-- directory name
-        full_path = os.path.join(source_dir, 'search_results.htm')
+        full_path = os.path.join(source_dir, 'best_books_2020.htm')
         summarylist = summarize_best_books(full_path)
         # check that we have the right number of best books (20)
         self.assertEqual(len(summarylist), 20)
