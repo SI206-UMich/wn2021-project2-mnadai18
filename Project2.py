@@ -55,10 +55,14 @@ def get_search_links():
     r = requests.get(url)
     base = 'https://www.goodreads.com/'
     soup = BeautifulSoup(r.content, 'html.parser')
-    tags = soup.find_all('a', href= re.compile('/book/show/'))
+    tags = soup.find_all('a', class_='bookTitle')
+    #print(tags)
     for tag in tags[:10]:
+        #print(tag)
         info = tag.get('href')
+        #print(info)
         urls.append(base + info)
+    #print(urls)
     return urls
 
 
@@ -76,18 +80,22 @@ def get_book_summary(book_url):
     You can easily capture CSS selectors with your browser's inspector window.
     Make sure to strip() any newlines from the book title and number of pages.
     """
-    #l = []
-    #tup = ()
-    #r = requests.get(book_url)
-    #soup = BeautifulSoup(r.content, 'html.parser')
-    #tags = soup.find_all("title")
-    #for tag in tags:
-        #info = tag.text
-        #info2 = info.strip('\n')
-        #info3 = info2.strip('\n')
-        #l.append(info3)
-    #return l
-    pass
+    
+    tup = []
+    r = requests.get(book_url)
+    soup = BeautifulSoup(r.content, 'html.parser')
+    ttag = soup.find('h1', id='bookTitle')
+    info = ttag.text
+    tup.append(info.strip())
+    atag = soup.find('span', itemprop="name")
+    name = atag.text
+    tup.append(name)
+    ptag = soup.find('span', itemprop="numberOfPages")
+    pages = ptag.text
+    num = pages.strip(' pages')
+    tup.append(int(num))
+    return tuple(tup)
+    
 
 
 
@@ -126,7 +134,6 @@ def summarize_best_books(filepath):
        
         return together
 
-    #tag.find('a', href=re.compile("https://www.goodreads.com/choiceawards/best-+[\w\d\-]*-books-2020"))
 
 
 
@@ -202,7 +209,6 @@ class TestCases(unittest.TestCase):
         summaries = []
         for url in get_search_links():
             summaries.append(get_book_summary(url))
-        print(summaries)
         # for each URL in TestCases.search_urls (should be a list of tuples)
         self.assertEqual(len(summaries), 10)
         for item in summaries:
