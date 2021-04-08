@@ -65,7 +65,9 @@ def get_book_summary(book_url):
     Make sure to strip() any newlines from the book title and number of pages.
     """
 
-    pass
+    r = requests.get(book_url)
+    soup = BeautifulSoup(r.content, 'html.parser')
+
 
 
 def summarize_best_books(filepath):
@@ -79,8 +81,11 @@ def summarize_best_books(filepath):
     ("Fiction", "The Testaments (The Handmaid's Tale, #2)", "https://www.goodreads.com/choiceawards/best-fiction-books-2020") 
     to your list of tuples.
     """
+    books = []
+    tuples = []
     with open(filepath) as f:
         soup = BeautifulSoup(f, 'html.parser')
+
     
 
 
@@ -133,8 +138,9 @@ class TestCases(unittest.TestCase):
         for item in results:
             self.assertIsInstance(item, tuple, msg = 'no')
         # check that the first book and author tuple is correct (open search_results.htm and find it)
-        
+        self.assertEqual(results[0], ("Harry Potter and the Sorcerer's Stone (Harry Potter #1)", 'J.K. Rowling'))
         # check that the last title is correct (open search_results.htm and find it)
+        self.assertEqual(results[-1], ('Harry Potter: The Prequel (Harry Potter, #0.5)', 'J.K. Rowling'))
 
     def test_get_search_links(self):
         links = get_search_links()
@@ -174,17 +180,21 @@ class TestCases(unittest.TestCase):
 
     def test_summarize_best_books(self):
         # call summarize_best_books and save it to a variable
-
+        source_dir = os.path.dirname(os.path.abspath(__file__)) #<-- directory name
+        full_path = os.path.join(source_dir, 'search_results.htm')
+        summarylist = summarize_best_books(full_path)
         # check that we have the right number of best books (20)
-        pass
+        self.assertEqual(len(summarylist), 20)
             # assert each item in the list of best books is a tuple
+        for item in summarylist:
+            self.assertIsInstance(item, tuple, msg ='no')
 
             # check that each tuple has a length of 3
-
+            self.assertEqual(len(item), 3)
         # check that the first tuple is made up of the following 3 strings:'Fiction', "The Midnight Library", 'https://www.goodreads.com/choiceawards/best-fiction-books-2020'
-
+        self.assertEqual(summarylist[0], ('Fiction', "The Midnight Library", 'https://www.goodreads.com/choiceawards/best-fiction-books-2020') )
         # check that the last tuple is made up of the following 3 strings: 'Picture Books', 'Antiracist Baby', 'https://www.goodreads.com/choiceawards/best-picture-books-2020'
-
+        self.assertEqual(summarylist[-1], ('Picture Books', 'Antiracist Baby', 'https://www.goodreads.com/choiceawards/best-picture-books-2020'))
 
     def test_write_csv(self):
         # call get_titles_from_search_results on search_results.htm and save the result to a variable
